@@ -20,6 +20,7 @@ export class DataRepositoryService {
             client,
             config.usersServiceURL,
             config.holidaysServiceURL,
+            config.pdfServiceURL,
         )
     }
 
@@ -59,5 +60,19 @@ export class DataRepositoryService {
 
     async syncHolidaysForYear(year: number): Promise<number> {
         return await this.repository.syncHolidaysForYear(year)
+    }
+
+    async generateTimesheetPDF(
+        year: number,
+        month: number,
+        attendances: Attendance[],
+        holidays: Holiday[],
+    ): Promise<Blob> {
+        return await this.repository.generateTimesheetPDF(
+            year,
+            month,
+            attendances,
+            holidays,
+        )
     }
 }

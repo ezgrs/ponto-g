@@ -61,6 +61,7 @@ export class HomeComponent {
     readonly holidayType = signal<HolidayType>("required")
     readonly holidayName = signal("")
     readonly holidayShift = signal<HolidayShift | "">("")
+    readonly generatingPDF = signal(false)
     private readonly currentMonth = signal<MonthOfTheYear>(
         this.toMonth(new Date()),
     )
@@ -344,6 +345,28 @@ export class HomeComponent {
         }
     }
 
+    async generatePDF() {
+        const snapshot = this.attendances$()
+        if (snapshot.type !== "done" || this.generatingPDF()) return
+
+        const { year, month } = this.currentMonth()
+        this.generatingPDF.set(true)
+        try {
+            const file = await this.dataRepository.generateTimesheetPDF(
+                year,
+                month,
+                snapshot.value,
+                this.allHolidays(),
+            )
+            this.downloadPDF(file, `frequencia-${year}-${String(month).padStart(2, "0")}.pdf`)
+            this.toast.success("PDF gerado.")
+        } catch (e) {
+            this.toast.error("Não foi possível gerar o PDF.")
+        } finally {
+            this.generatingPDF.set(false)
+        }
+    }
+
     async addAbsence() {
         const employeeId = this.selectedEmployeeId()
         const startDate = this.parseDateInput(this.absenceStartDate())
@@ -497,6 +520,15 @@ export class HomeComponent {
             date.getMonth(),
             date.getDate(),
         ).getTime()
+    }
+
+    private downloadPDF(file: Blob, filename: string): void {
+        const url = URL.createObjectURL(file)
+        const link = document.createElement("a")
+        link.href = url
+        link.download = filename
+        link.click()
+        URL.revokeObjectURL(url)
     }
 
     private isSameDate(left: Date | null, right: Date | null): boolean {

@@ -14,6 +14,10 @@ export class HTTPClientService implements HTTPClient {
         return await this.client.post(url, data)
     }
 
+    async postBlob(url: URL, data: any): Promise<Blob> {
+        return await this.client.postBlob(url, data)
+    }
+
     async delete(url: URL): Promise<void> {
         return await this.client.delete(url)
     }

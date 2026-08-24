@@ -3,6 +3,7 @@ import { AbsenceReason } from "../../domain/enums/absence-reason"
 import { EmployeeData } from "../../domain/entities/employee"
 import { Holiday } from "../../domain/entities/holiday"
 import { HolidayType } from "../../domain/enums/holiday-type"
+import { HolidayShift } from "../../domain/enums/holiday-shift"
 import { ReadAbsencesDTOSchema } from "../dto/ReadAbsencesDto"
 import { HTTPClient } from "../ports/http-client"
 
@@ -24,8 +25,27 @@ type HolidayDTO = {
     id: string
     date: string
     name: string
-    type: HolidayType
+    type?: HolidayType
     shift: "am" | "pm" | null
+}
+
+type PDFHolidayShift = "morning" | "afternoon"
+
+type TimesheetPDFPayload = {
+    title: string
+    year: number
+    month: number
+    attendances: {
+        employee: EmployeeData
+        absences: Record<number, AbsenceReason | "unjustified">
+    }[]
+    holidays: Record<
+        number,
+        {
+            type: HolidayType
+            shifts: PDFHolidayShift[]
+        }
+    >
 }
 
 export class DataRepositoryUseCase {
@@ -33,6 +53,7 @@ export class DataRepositoryUseCase {
         private readonly client: HTTPClient,
         private readonly usersServiceURL: URL,
         private readonly holidaysServiceURL: URL,
+        private readonly pdfServiceURL: URL,
     ) {}
 
     async readAttendances(year: number, month: number): Promise<Attendance[]> {
@@ -60,7 +81,7 @@ export class DataRepositoryUseCase {
             id: holiday.id,
             date: this.parseDateOnly(holiday.date),
             name: holiday.name,
-            type: holiday.type,
+            type: this.normalizeHolidayType(holiday.type),
             shift: holiday.shift,
         }))
     }
@@ -134,6 +155,31 @@ export class DataRepositoryUseCase {
         return created
     }
 
+    async generateTimesheetPDF(
+        year: number,
+        month: number,
+        attendances: Attendance[],
+        holidays: Holiday[],
+    ): Promise<Blob> {
+        const url = new URL(this.pdfServiceURL)
+        url.pathname = "/timesheet/pdf"
+
+        return await this.client.postBlob(url, {
+            title: "FOLHA DE PONTO",
+            year,
+            month,
+            attendances: attendances.map((attendance) => ({
+                employee: {
+                    name: attendance.employee.name,
+                    role: attendance.employee.role,
+                    code: attendance.employee.code,
+                },
+                absences: this.mapAbsencesByDay(year, month, attendance.absences),
+            })),
+            holidays: this.mapHolidaysByDay(year, month, holidays),
+        } satisfies TimesheetPDFPayload)
+    }
+
     private toDateKey(date: Date): string {
         const year = date.getFullYear()
         const month = String(date.getMonth() + 1).padStart(2, "0")
@@ -145,5 +191,80 @@ export class DataRepositoryUseCase {
         const [date] = value.split("T")
         const [year, month, day] = date.split("-").map(Number)
         return new Date(year, month - 1, day)
+    }
+
+    private mapAbsencesByDay(
+        year: number,
+        month: number,
+        absences: Attendance["absences"],
+    ): Record<number, AbsenceReason | "unjustified"> {
+        return absences.reduce<Record<number, AbsenceReason | "unjustified">>(
+            (days, absence) => {
+                const firstDay = new Date(year, month - 1, 1)
+                const lastDay = new Date(year, month, 0)
+                const start = this.onlyDate(
+                    absence.startDate < firstDay ? firstDay : absence.startDate,
+                )
+                const end = this.onlyDate(
+                    absence.endDate > lastDay ? lastDay : absence.endDate,
+                )
+
+                for (
+                    let date = new Date(start);
+                    date.getTime() <= end;
+                    date.setDate(date.getDate() + 1)
+                ) {
+                    days[date.getDate()] = absence.reason ?? "unjustified"
+                }
+                return days
+            },
+            {},
+        )
+    }
+
+    private mapHolidaysByDay(
+        year: number,
+        month: number,
+        holidays: Holiday[],
+    ): TimesheetPDFPayload["holidays"] {
+        return holidays.reduce<TimesheetPDFPayload["holidays"]>(
+            (days, holiday) => {
+                const holidayMonth = holiday.date.getMonth() + 1
+                const holidayYear = holiday.date.getFullYear()
+                if (holidayMonth !== month || holidayYear !== year) return days
+
+                days[holiday.date.getDate()] = {
+                    type: this.normalizeHolidayType(holiday.type),
+                    shifts: this.toPDFHolidayShifts(holiday.shift),
+                }
+                return days
+            },
+            {},
+        )
+    }
+
+    private toPDFHolidayShifts(
+        shift: HolidayShift | null,
+    ): PDFHolidayShift[] {
+        switch (shift) {
+            case "am":
+                return ["morning"]
+            case "pm":
+                return ["afternoon"]
+            default:
+                return ["morning", "afternoon"]
+        }
+    }
+
+    private normalizeHolidayType(type: HolidayType | undefined): HolidayType {
+        return type ?? "required"
+    }
+
+    private onlyDate(date: Date): number {
+        return new Date(
+            date.getFullYear(),
+            date.getMonth(),
+            date.getDate(),
+        ).getTime()
     }
 }
