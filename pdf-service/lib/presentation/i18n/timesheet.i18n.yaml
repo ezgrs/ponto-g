@@ -1,7 +1,7 @@
 subtitle: LISTA DE FREQUÊNCIA
 
 header:
-  name: Nome do servidor
+  name: Nome do funcionário
   role: Cargo
   code: Matrícula
 
@@ -25,5 +25,5 @@ table:
 
 footer:
   additionalInfo: Observação
-  employeeSignature: Assinatura do servidor
-  managerSignature: Assinatura do chefe imediato
+  employeeSignature: Assinatura do funcionário
+  managerSignature: Assinatura do superior
