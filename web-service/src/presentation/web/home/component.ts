@@ -10,6 +10,7 @@ import { Employee, EmployeeData } from "../../../domain/entities/employee"
 import { Attendance } from "../../../domain/entities/attendance"
 import { Holiday } from "../../../domain/entities/holiday"
 import { HolidayShift } from "../../../domain/enums/holiday-shift"
+import { HolidayType } from "../../../domain/enums/holiday-type"
 import { AbsenceReason } from "../../../domain/enums/absence-reason"
 import { DataRepositoryService } from "../core/services/data-repository.service"
 import { ToastService } from "../core/services/toast.service"
@@ -27,8 +28,7 @@ type SelectedAbsence = {
     reason: string
     range: string
 }
-type LocalHolidayType = "required" | "optional"
-type LocalHoliday = Holiday & { type: LocalHolidayType }
+type LocalHoliday = Holiday
 type CalendarDay = {
     date: Date
     day: number
@@ -58,7 +58,7 @@ export class HomeComponent {
     readonly absenceEndDate = signal(this.toDateKey(new Date()))
     readonly localHolidays = signal<LocalHoliday[]>([])
     readonly holidayDialogOpen = signal(false)
-    readonly holidayType = signal<LocalHolidayType>("required")
+    readonly holidayType = signal<HolidayType>("required")
     readonly holidayName = signal("")
     readonly holidayShift = signal<HolidayShift | "">("")
     private readonly currentMonth = signal<MonthOfTheYear>(
@@ -256,7 +256,7 @@ export class HomeComponent {
 
     updateHolidayType(event: Event) {
         const select = event.target as HTMLSelectElement
-        this.holidayType.set(select.value as LocalHolidayType)
+        this.holidayType.set(select.value as HolidayType)
     }
 
     updateHolidayName(event: Event) {

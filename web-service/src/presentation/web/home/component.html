@@ -198,7 +198,7 @@
                                             <div>
                                                 <h3 class="text-sm font-semibold text-emerald-950">{{ holiday.name }}</h3>
                                                 <p class="text-xs text-emerald-800">
-                                                    Feriado sincronizado
+                                                    {{ holiday.type === "required" ? "Obrigatório" : "Facultativo" }}
                                                 </p>
                                                 <p class="text-xs text-emerald-700">
                                                     @switch (holiday.shift) {

@@ -2,6 +2,7 @@ import { Attendance } from "../../domain/entities/attendance"
 import { AbsenceReason } from "../../domain/enums/absence-reason"
 import { EmployeeData } from "../../domain/entities/employee"
 import { Holiday } from "../../domain/entities/holiday"
+import { HolidayType } from "../../domain/enums/holiday-type"
 import { ReadAbsencesDTOSchema } from "../dto/ReadAbsencesDto"
 import { HTTPClient } from "../ports/http-client"
 
@@ -15,7 +16,7 @@ type CreateAbsenceData = {
 type OfficialHolidayDTO = {
     date: string
     name: string
-    type: string
+    type: HolidayType
     scope: string
 }
 
@@ -23,6 +24,7 @@ type HolidayDTO = {
     id: string
     date: string
     name: string
+    type: HolidayType
     shift: "am" | "pm" | null
 }
 
@@ -58,6 +60,7 @@ export class DataRepositoryUseCase {
             id: holiday.id,
             date: this.parseDateOnly(holiday.date),
             name: holiday.name,
+            type: holiday.type,
             shift: holiday.shift,
         }))
     }
@@ -121,6 +124,7 @@ export class DataRepositoryUseCase {
                 await this.client.post(url, {
                     date: holiday.date,
                     name: holiday.name,
+                    type: holiday.type,
                     shift: null,
                 })
                 created++
