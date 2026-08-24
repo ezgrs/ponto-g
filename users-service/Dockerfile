@@ -12,6 +12,7 @@ RUN npm run build
 RUN npx tsc-alias
 
 ENV NODE_ENV=production
+ENV DATABASE_MIGRATIONS_RUN=true
 
 EXPOSE 3000
 

@@ -13,5 +13,6 @@ export const databaseConfig: TypeOrmModuleOptions = {
     database: process.env.DATABASE_NAME,
     entities: [`${dirName}/infrastructure/db/entities/*.entity.${fileExtension}`],
     migrations: [`${dirName}/infrastructure/db/migrations/*.${fileExtension}`],
+    migrationsRun: process.env.DATABASE_MIGRATIONS_RUN === "true",
     retryAttempts: 0,
 } as const
