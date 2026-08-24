@@ -2,6 +2,7 @@ package dev.enzosantos.timesheet.infrastructure.web.controllers;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +16,7 @@ import dev.enzosantos.timesheet.infrastructure.web.dto.HolidayDTO;
 import dev.enzosantos.timesheet.infrastructure.web.mapper.HolidayDTOMapper;
 
 @RestController
+@CrossOrigin
 @RequestMapping("/holidays")
 class HolidayController {
 
