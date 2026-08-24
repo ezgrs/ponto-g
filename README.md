@@ -18,15 +18,17 @@
     Porque aparentemente, em 2026, ainda é preciso provar que alguém trabalhou na terça-feira.
   </sub>
 </p>
-
 <br>
 
-<a href="#arquitetura">
-  <img src="https://img.shields.io/badge/microserviços-4-8250df?style=for-the-badge">
-</a>
-<a href="#stack">
-  <img src="https://img.shields.io/badge/burocracia-reduzida-f85149?style=for-the-badge">
-</a>
+<img src="https://img.shields.io/badge/microserviços-4-8250df?style=for-the-badge">
+<img src="https://img.shields.io/badge/burocracia-reduzida-f85149?style=for-the-badge">
+
+
+<br>
+<br>
+<br>
+<img width="2560" height="1600" alt="localhost_4200_(Nest Hub Max)" src="https://github.com/user-attachments/assets/8be3602b-6435-4d5b-87a4-d417698477df" />
+
 
 </div>
 
@@ -126,6 +128,7 @@ Porque “ele não veio” é informação.<br>
 </td>
 </tr>
 </table>
+
 
 <div align="center">
   
