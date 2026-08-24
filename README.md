@@ -30,7 +30,7 @@
 
 
 
-<img width="2560" height="1600" alt="localhost_4200_(Nest Hub Max)" src="https://github.com/user-attachments/assets/8be3602b-6435-4d5b-87a4-d417698477df" />
+<img width="1280" height="800" alt="localhost_4200_(Nest Hub Max)" src="https://github.com/user-attachments/assets/5cd53936-ec92-4a1b-a14f-47d38ef66fa2" />
 <div style="display: flex; gap: 10px;">
   <img src="https://github.com/user-attachments/assets/3015a7ba-8a76-48b1-a1c0-72e7b6a0ddda" width="49%">
   <img src="https://github.com/user-attachments/assets/bfe3f943-709a-4b47-9355-178a01e2a398" width="49%">
