@@ -27,7 +27,14 @@
 <br>
 <br>
 <br>
+
+
+
 <img width="2560" height="1600" alt="localhost_4200_(Nest Hub Max)" src="https://github.com/user-attachments/assets/8be3602b-6435-4d5b-87a4-d417698477df" />
+<div style="display: flex; gap: 10px;">
+  <img src="https://github.com/user-attachments/assets/3015a7ba-8a76-48b1-a1c0-72e7b6a0ddda" width="49%">
+  <img src="https://github.com/user-attachments/assets/bfe3f943-709a-4b47-9355-178a01e2a398" width="49%">
+</div>
 
 
 </div>
@@ -328,98 +335,6 @@ O primeiro é um fato; o segundo é um fato com documentação suficiente para s
 <br><br>
 </details>
 
-
-<details>
-<summary><strong>Ele gera PDF?</strong></summary>
-<br>
-Sim.
-
-PDF.
-
-O formato universalmente escolhido pela humanidade quando queremos dizer "Aqui está o documento. Agora ninguém mexe mais".
-
-O Ponto G gera as folhas automaticamente para que você não precise descobrir, pela 37ª vez, por que uma tabela do Word resolveu mudar de tamanho sozinha.
-
-<br><br>
-</details>
-
-<details>
-<summary><strong>Por que não gerar tudo no frontend?</strong></summary>
-<br>
-  
-Porque cada coisa tem seu lugar.
-
-O frontend cuida da interface e da integração.
-
-O serviço de PDF cuida dos PDFs.
-
-O serviço de feriados cuida dos feriados.
-
-O serviço de dados cuida dos dados.
-
-É quase uma sociedade funcional (algo que deveríamos tentar aplicar em outras áreas).
-
-<br><br>
-</details>
-
-<details>
-<summary><strong>O Ponto G sabe quando é feriado?</strong></summary>
-<br>
-  
-Sabe, inclusive melhor do que aquela pessoa que manda "Gente, amanhã é feriado?" no grupo da empresa às 21h43.
-
-<br><br>
-</details>
-
-<details>
-<summary><strong>O Ponto G tem inteligência artificial?</strong></summary>
-<br>
-  
-Não.
-
-E isso é uma decisão consciente.
-
-Para gerar uma folha de ponto, talvez não seja necessário um modelo de linguagem com 400 bilhões de parâmetros.
-
-Às vezes um bom `if` resolve.
-
-A tecnologia também consiste em saber quando **não** usar tecnologia.
-
-<br><br>
-</details>
-
-<details>
-<summary><strong>Ele pode errar?</strong></summary>
-<br>
-  
-Pode, é software.
-
-Se algum dia alguém disser que o sistema dele não pode errar, faça uma coisa: **não entregue seus dados para essa pessoa.**
-
-O objetivo do Ponto G é reduzir erros manuais e tornar o processo previsível.
-
-Não prometemos infalibilidade.
-
-Prometemos, no mínimo, não depender de alguém lembrar de trocar "Março" por "Abril" em 14 planilhas.
-
-<br><br>
-</details>
-
-<details>
-<summary><strong>Por que isso precisava ser um projeto?</strong></summary>
-<br>
-  
-Porque alguém, em algum momento, olhou para uma tarefa repetitiva e pensou "isso aqui dava para automatizar".
-
-Essa frase já destruiu incontáveis fins de semana.
-
-E criou incontáveis projetos no GitHub.
-
-Este é um deles.
-
-<br><br>
-</details>
-
 <details>
 <summary><strong>O projeto está pronto?</strong></summary>
 <br>
@@ -434,46 +349,6 @@ Provavelmente.
 
 <br><br>
 </details>
-
-<details>
-<summary><strong>Posso contribuir?</strong></summary>
-
-Claro, pull requests são bem-vindos.
-
-Issues também.
-
-Se você encontrar um bug, abra uma issue.
-
-Se você encontrar uma decisão arquitetural questionável, abra uma issue.
-
-Se você encontrar várias decisões arquiteturais questionáveis, abra um Pull Request.
-
-Se você simplesmente quiser reclamar, recomendamos abrir um issue mesmo assim. É mais organizado.
-
-<br><br>
-</details>
-
-<details>
-<summary><strong>Posso fazer um fork?</strong></summary>
-<br>
-  
-Pode. O conhecimento é livre. O sofrimento também.
-
-<br><br>
-</details>
-
-
-<details>
-<summary><strong>Por que o projeto se chama Ponto G se ele é sobre folha de ponto?</strong></summary>
-<br>
-  
-Porque **Ponto G** é mais memorável do que `timesheet-service`.
-
-E porque, depois de horas configurando microserviços, dependências, cache, geração de PDF e integração com API externa, alguém precisava pelo menos se divertir.
-
-<br><br>
-</details>
-
 
 <div align="center">
 
