@@ -1,4 +1,6 @@
 import { HolidayShift, holidayShifts } from "@/domain/enums/holiday-shift.js"
+import { holidayTypes } from "@/domain/enums/holiday-type.js"
+import type { HolidayType } from "@/domain/enums/holiday-type.js"
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
 
 @Entity({ name: "holidays" })
@@ -11,6 +13,13 @@ export class HolidayEntity {
 
     @Column({ name: "name", type: "varchar", length: 255 })
     name!: string
+
+    @Column({
+        name: "type",
+        type: "enum",
+        enum: holidayTypes,
+    })
+    type!: HolidayType
 
     @Column({
         name: "shift",

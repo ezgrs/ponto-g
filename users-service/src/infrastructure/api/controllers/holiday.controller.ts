@@ -34,6 +34,7 @@ export class HolidayController {
             id: id,
             name: dto.name,
             date: dto.date,
+            type: dto.type,
             shift: dto.shift ?? null,
         })
         return id

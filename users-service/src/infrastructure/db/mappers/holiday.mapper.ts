@@ -7,6 +7,7 @@ export namespace HolidayMapper {
             id: entity.id,
             name: entity.name,
             date: entity.date,
+            type: entity.type,
             shift: entity.shift,
         }
     }
@@ -16,6 +17,7 @@ export namespace HolidayMapper {
         entity.id = domain.id
         entity.name = domain.name
         entity.date = domain.date
+        entity.type = domain.type
         entity.shift = domain.shift
         return entity
     }

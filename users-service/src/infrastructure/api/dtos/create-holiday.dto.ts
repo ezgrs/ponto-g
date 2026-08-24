@@ -1,4 +1,6 @@
 import { HolidayShift, holidayShifts } from "@/domain/enums/holiday-shift.js"
+import { holidayTypes } from "@/domain/enums/holiday-type.js"
+import type { HolidayType } from "@/domain/enums/holiday-type.js"
 import {
     IsEnum,
     IsISO8601,
@@ -15,6 +17,10 @@ export class CreateHolidayDTO {
     @IsString()
     @Length(1, 255)
     name!: string
+
+    @IsString()
+    @IsEnum(holidayTypes)
+    type!: HolidayType
 
     @IsOptional()
     @IsString()
