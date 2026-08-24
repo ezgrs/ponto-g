@@ -13,13 +13,31 @@ import 'package:timesheet/infrastructure/dto/models.dart';
 import 'package:timesheet/presentation/i18n/timesheet.i18n.dart' as i18n;
 import 'package:universal_io/io.dart';
 
+const _corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Expose-Headers': 'Content-Disposition',
+};
+
 Future<Response> onRequest(RequestContext context) async {
-  final body = await context.request.json();
+  if (context.request.method == HttpMethod.options) {
+    return Response(statusCode: HttpStatus.noContent, headers: _corsHeaders);
+  }
+
+  if (context.request.method != HttpMethod.post) {
+    return Response(
+      statusCode: HttpStatus.methodNotAllowed,
+      headers: _corsHeaders,
+    );
+  }
+
   final TimesheetDto timesheetDto;
   try {
+    final body = await context.request.json();
     timesheetDto = TimesheetDto.fromJson(body as Map);
   } catch (e) {
-    return Response(statusCode: HttpStatus.badRequest);
+    return Response(statusCode: HttpStatus.badRequest, headers: _corsHeaders);
   }
   final timesheet = Timesheet(
     year: timesheetDto.year,
@@ -47,6 +65,7 @@ Future<Response> onRequest(RequestContext context) async {
     default:
       return Response(
         statusCode: HttpStatus.badRequest,
+        headers: _corsHeaders,
         body: 'unsupported locale: $locale',
       );
   }
@@ -87,6 +106,7 @@ Future<Response> onRequest(RequestContext context) async {
   return Response.bytes(
     body: bytes,
     headers: {
+      ..._corsHeaders,
       'Content-Type': 'application/pdf',
       'Content-Disposition': 'attachment; filename=Frequencia.pdf',
     },
