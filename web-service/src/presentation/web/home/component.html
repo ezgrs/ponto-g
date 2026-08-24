@@ -174,12 +174,67 @@
 
                         <aside class="flex flex-col gap-4">
                             <section class="rounded-lg border border-slate-200 bg-white p-4">
-                                <h2 class="text-base font-semibold text-slate-950">Dia selecionado</h2>
+                                <div class="flex items-center justify-between gap-3">
+                                    <h2 class="text-base font-semibold text-slate-950">Dia selecionado</h2>
+                                    <button
+                                        type="button"
+                                        class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+                                        [disabled]="!selectedDateLabel() || !!selectedRemoteHoliday() || !!selectedLocalHoliday()"
+                                        (click)="openHolidayDialog()"
+                                    >
+                                        Adicionar feriado
+                                    </button>
+                                </div>
 
                                 @if (!selectedDateLabel()) {
                                     <div class="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-600">
-                                        Selecione um dia no calendario ou informe um periodo para vincular ausencias.
+                                        Selecione um dia no calendário ou informe um período para vincular ausências.
                                     </div>
+                                }
+
+                                @if (selectedRemoteHoliday(); as holiday) {
+                                    <article class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div>
+                                                <h3 class="text-sm font-semibold text-emerald-950">{{ holiday.name }}</h3>
+                                                <p class="text-xs text-emerald-800">
+                                                    Feriado sincronizado
+                                                </p>
+                                                <p class="text-xs text-emerald-700">
+                                                    @switch (holiday.shift) {
+                                                        @case ("am") { Manhã }
+                                                        @case ("pm") { Tarde }
+                                                        @default { Dia inteiro }
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </article>
+                                } @else if (selectedLocalHoliday(); as holiday) {
+                                    <article class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div>
+                                                <h3 class="text-sm font-semibold text-emerald-950">{{ holiday.name }}</h3>
+                                                <p class="text-xs text-emerald-800">
+                                                    {{ holiday.type === "required" ? "Obrigatório" : "Facultativo" }}
+                                                </p>
+                                                <p class="text-xs text-emerald-700">
+                                                    @switch (holiday.shift) {
+                                                        @case ("am") { Manhã }
+                                                        @case ("pm") { Tarde }
+                                                        @default { Dia inteiro }
+                                                    }
+                                                </p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                class="rounded-md border border-emerald-200 bg-white px-2 py-1 text-xs font-semibold text-emerald-800 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
+                                                (click)="removeLocalHoliday(holiday.id)"
+                                            >
+                                                Remover
+                                            </button>
+                                        </div>
+                                    </article>
                                 }
 
                                     <div class="mt-4 grid gap-3">
@@ -284,4 +339,74 @@
             }
         }
     </div>
+
+    @if (holidayDialogOpen()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-4">
+            <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="holiday-dialog-title"
+                class="w-full max-w-md rounded-lg border border-slate-200 bg-white p-5 shadow-xl"
+            >
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <h2 id="holiday-dialog-title" class="text-base font-semibold text-slate-950">Adicionar feriado</h2>
+                        <p class="mt-1 text-sm text-slate-500">Este feriado ficará salvo apenas na sessão atual.</p>
+                    </div>
+                    <button
+                        type="button"
+                        class="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+                        (click)="closeHolidayDialog()"
+                    >
+                        Fechar
+                    </button>
+                </div>
+
+                <div class="mt-5 grid gap-3">
+                    <label class="grid gap-1">
+                        <span class="text-xs font-medium text-slate-600">Tipo</span>
+                        <select
+                            class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+                            [value]="holidayType()"
+                            (change)="updateHolidayType($event)"
+                        >
+                            <option value="required">Obrigatório</option>
+                            <option value="optional">Facultativo</option>
+                        </select>
+                    </label>
+
+                    <label class="grid gap-1">
+                        <span class="text-xs font-medium text-slate-600">Nome</span>
+                        <input
+                            class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+                            [value]="holidayName()"
+                            (input)="updateHolidayName($event)"
+                        />
+                    </label>
+
+                    <label class="grid gap-1">
+                        <span class="text-xs font-medium text-slate-600">Turno</span>
+                        <select
+                            class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+                            [value]="holidayShift()"
+                            (change)="updateHolidayShift($event)"
+                        >
+                            <option value="">Dia inteiro</option>
+                            <option value="am">Manha</option>
+                            <option value="pm">Tarde</option>
+                        </select>
+                    </label>
+
+                    <button
+                        type="button"
+                        class="h-10 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                        [disabled]="!selectedDateLabel() || !holidayName().trim()"
+                        (click)="addLocalHoliday()"
+                    >
+                        Adicionar
+                    </button>
+                </div>
+            </section>
+        </div>
+    }
 </main>

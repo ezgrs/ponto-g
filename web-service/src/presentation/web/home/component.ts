@@ -9,6 +9,7 @@ import { EmployeeCardComponent } from "../employee-card/component"
 import { Employee, EmployeeData } from "../../../domain/entities/employee"
 import { Attendance } from "../../../domain/entities/attendance"
 import { Holiday } from "../../../domain/entities/holiday"
+import { HolidayShift } from "../../../domain/enums/holiday-shift"
 import { AbsenceReason } from "../../../domain/enums/absence-reason"
 import { DataRepositoryService } from "../core/services/data-repository.service"
 import { ToastService } from "../core/services/toast.service"
@@ -26,6 +27,8 @@ type SelectedAbsence = {
     reason: string
     range: string
 }
+type LocalHolidayType = "required" | "optional"
+type LocalHoliday = Holiday & { type: LocalHolidayType }
 type CalendarDay = {
     date: Date
     day: number
@@ -53,6 +56,11 @@ export class HomeComponent {
     readonly selectedAbsenceReason = signal<AbsenceReason>("annualLeave")
     readonly absenceStartDate = signal(this.toDateKey(new Date()))
     readonly absenceEndDate = signal(this.toDateKey(new Date()))
+    readonly localHolidays = signal<LocalHoliday[]>([])
+    readonly holidayDialogOpen = signal(false)
+    readonly holidayType = signal<LocalHolidayType>("required")
+    readonly holidayName = signal("")
+    readonly holidayShift = signal<HolidayShift | "">("")
     private readonly currentMonth = signal<MonthOfTheYear>(
         this.toMonth(new Date()),
     )
@@ -71,6 +79,35 @@ export class HomeComponent {
     )
 
     readonly yearLabel = computed(() => String(this.currentMonth().year))
+
+    readonly allHolidays = computed(() => {
+        const { month, year } = this.currentMonth()
+        const localHolidays = this.localHolidays().filter((holiday) => {
+            const holidayMonth = this.toMonth(holiday.date)
+            return holidayMonth.month === month && holidayMonth.year === year
+        })
+        return [...this.holidays(), ...localHolidays]
+    })
+
+    readonly selectedLocalHoliday = computed(() => {
+        const selectedDate = this.selectedDate()
+        if (!selectedDate) return null
+        return (
+            this.localHolidays().find((holiday) =>
+                this.isSameDate(holiday.date, selectedDate),
+            ) ?? null
+        )
+    })
+
+    readonly selectedRemoteHoliday = computed(() => {
+        const selectedDate = this.selectedDate()
+        if (!selectedDate) return null
+        return (
+            this.holidays().find((holiday) =>
+                this.isSameDate(holiday.date, selectedDate),
+            ) ?? null
+        )
+    })
 
     readonly hasValidAbsenceRange = computed(() => {
         const startDate = this.parseDateInput(this.absenceStartDate())
@@ -139,7 +176,7 @@ export class HomeComponent {
                 0,
             ),
             selectedAbsences: this.selectedAbsences().length,
-            holidays: this.holidays().length,
+            holidays: this.allHolidays().length,
         }
     })
 
@@ -198,6 +235,88 @@ export class HomeComponent {
     selectAbsenceReason(event: Event) {
         const select = event.target as HTMLSelectElement
         this.selectedAbsenceReason.set(select.value as AbsenceReason)
+    }
+
+    openHolidayDialog() {
+        if (
+            !this.selectedDate() ||
+            this.selectedRemoteHoliday() ||
+            this.selectedLocalHoliday()
+        ) return
+
+        this.holidayType.set("required")
+        this.holidayName.set("")
+        this.holidayShift.set("")
+        this.holidayDialogOpen.set(true)
+    }
+
+    closeHolidayDialog() {
+        this.holidayDialogOpen.set(false)
+    }
+
+    updateHolidayType(event: Event) {
+        const select = event.target as HTMLSelectElement
+        this.holidayType.set(select.value as LocalHolidayType)
+    }
+
+    updateHolidayName(event: Event) {
+        const input = event.target as HTMLInputElement
+        this.holidayName.set(input.value)
+    }
+
+    updateHolidayShift(event: Event) {
+        const select = event.target as HTMLSelectElement
+        this.holidayShift.set(select.value as HolidayShift | "")
+    }
+
+    addLocalHoliday() {
+        const date = this.selectedDate()
+        const name = this.holidayName().trim()
+        if (!date || !name) return
+
+        const hasLocalHoliday = this.localHolidays().some((holiday) =>
+            this.isSameDate(holiday.date, date),
+        )
+        const hasLoadedHoliday = this.holidays().some((holiday) =>
+            this.isSameDate(holiday.date, date),
+        )
+        if (hasLocalHoliday || hasLoadedHoliday) {
+            this.toast.error("Já existe um feriado para esta data.")
+            return
+        }
+
+        this.localHolidays.update((holidays) => [
+            ...holidays,
+            {
+                id: `local:${this.toDateKey(date)}`,
+                date,
+                name,
+                type: this.holidayType(),
+                shift: this.holidayShift() || null,
+            },
+        ])
+        this.selectedDate.set(date)
+        this.selectedEmployeeId.set(null)
+        this.absenceStartDate.set(this.toDateKey(date))
+        this.absenceEndDate.set(this.toDateKey(date))
+        const updatedMonth = this.toMonth(date)
+        const currentMonth = this.currentMonth()
+        if (
+            updatedMonth.month !== currentMonth.month ||
+            updatedMonth.year !== currentMonth.year
+        ) {
+            this.currentMonth.set(updatedMonth)
+            this.pushMonthData(updatedMonth)
+        }
+        this.closeHolidayDialog()
+        this.toast.success("Feriado adicionado localmente.")
+    }
+
+    removeLocalHoliday(id: string) {
+        this.localHolidays.update((holidays) =>
+            holidays.filter((holiday) => holiday.id !== id),
+        )
+        this.toast.success("Feriado local removido.")
     }
 
     updateAbsenceStartDate(event: Event) {
@@ -397,7 +516,7 @@ export class HomeComponent {
     }
 
     private hasHolidayOnDate(date: Date): boolean {
-        return this.holidays().some((holiday) =>
+        return this.allHolidays().some((holiday) =>
             this.isSameDate(date, holiday.date),
         )
     }
