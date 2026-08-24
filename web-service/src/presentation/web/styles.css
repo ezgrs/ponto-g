@@ -1,6 +1,21 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import "tailwindcss";
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    background: #f7f8f6;
+}
+
+body {
+    min-width: 320px;
+}
+
+button,
+input {
+    font: inherit;
+}
 
 .snackbar-error {
     background-color: #d32f2f;

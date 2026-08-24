@@ -1,38 +1,48 @@
-<form [formGroup]="form" (ngSubmit)="submit()" class="flex items-start gap-3">
-    <input
-        formControlName="name"
-        placeholder="Name"
-        class="flex-1 rounded border p-2"
-    />
-
-    <div class="flex flex-col">
+<form [formGroup]="form" (ngSubmit)="submit()" class="grid gap-3">
+    <label class="grid min-w-0 gap-1">
+        <span class="text-xs font-medium text-slate-600">Nome</span>
         <input
-            formControlName="code"
-            placeholder="9999999-999"
-            mask="0000000-000"
-            class="w-44 rounded border p-2"
-            [dropSpecialCharacters]="false"
+            formControlName="name"
+            class="h-10 min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
         />
+    </label>
+
+    <div class="grid min-w-0 gap-3 sm:grid-cols-2">
+        <label class="grid min-w-0 gap-1">
+            <span class="text-xs font-medium text-slate-600">Cargo</span>
+            <input
+                formControlName="role"
+                class="h-10 min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+            />
+        </label>
+
+        <label class="grid min-w-0 gap-1">
+            <span class="text-xs font-medium text-slate-600">Código</span>
+            <input
+                formControlName="code"
+                mask="0000000-000"
+                class="h-10 min-w-0 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+                [dropSpecialCharacters]="false"
+            />
+        </label>
+    </div>
+
+    <div class="min-h-5">
         @if (
             form.controls.code.invalid &&
             (form.controls.code.dirty || form.controls.code.touched)
         ) {
             @if (form.controls.code.errors?.["pattern"]) {
-                <small class="text-red-600">Código inválido.</small>
+                <small class="text-xs font-medium text-red-700">Codigo invalido.</small>
             }
         }
     </div>
 
-    <input
-        formControlName="role"
-        placeholder="Role"
-        class="w-40 rounded border p-2"
-    />
-
     <button
         type="submit"
-        class="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+        [disabled]="form.invalid"
+        class="h-10 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
     >
-        Add
+        Adicionar
     </button>
 </form>

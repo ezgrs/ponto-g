@@ -10,10 +10,20 @@ export class FetchHTTPClient implements HTTPClient {
     }
 
     async post(url: URL, data: any): Promise<void> {
-        await fetch(url, { method: "POST", body: JSON.stringify(data) })
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data),
+        })
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`)
+        }
     }
 
     async delete(url: URL): Promise<void> {
-        await fetch(url, { method: "DELETE" })
+        const response = await fetch(url, {method: "DELETE"})
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`)
+        }
     }
 }

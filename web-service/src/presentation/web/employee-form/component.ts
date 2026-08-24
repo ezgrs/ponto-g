@@ -5,7 +5,7 @@ import {
     ReactiveFormsModule,
     Validators,
 } from "@angular/forms"
-import { Employee } from "../../../domain/entities/employee"
+import { Employee, EmployeeData } from "../../../domain/entities/employee"
 import { NgxMaskDirective } from "ngx-mask"
 
 @Component({
@@ -15,7 +15,7 @@ import { NgxMaskDirective } from "ngx-mask"
     templateUrl: "./component.html",
 })
 export class EmployeeFormComponent {
-    @Output() add = new EventEmitter<Employee>()
+    @Output() add = new EventEmitter<EmployeeData>()
 
     form = new FormGroup({
         name: new FormControl("", {
@@ -38,7 +38,7 @@ export class EmployeeFormComponent {
     submit() {
         if (this.form.invalid) return
 
-        this.add.emit({ ...this.form.getRawValue(), id: crypto.randomUUID() })
+        this.add.emit({ ...this.form.getRawValue() })
         this.form.reset()
     }
 }

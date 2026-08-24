@@ -1,100 +1,287 @@
-<div class="mx-auto max-w-7xl p-6 space-y-6">
-    <!-- Employees -->
-    <section
-        class="w-full md:flex-1 min-w-0 rounded-xl border bg-white p-6 shadow-sm"
-    >
-        @let snapshot = attendances$();
+@let snapshot = attendances$();
+@let totals = summary();
 
-        <h2 class="mb-4 text-xl font-semibold">Employees</h2>
+<main class="min-h-screen bg-[#f7f8f6] text-slate-950">
+    <div class="mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
+        <header class="flex flex-col gap-4 border-b border-slate-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Ponto G</p>
+                <h1 class="mt-2 text-3xl font-semibold tracking-normal text-slate-950">Gerador de PDF</h1>
+            </div>
+
+            <button
+                type="button"
+                class="h-10 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                (click)="syncHolidaysForCurrentYear()"
+            >
+                Sincronizar feriados {{ yearLabel() }}
+            </button>
+        </header>
+
         @switch (snapshot.type) {
             @case ("waiting") {
-                <div class="mt-5 flex items-center justify-center">
-                    <mat-spinner diameter="48" color="blue-600"></mat-spinner>
-                </div>
+                <section class="flex min-h-[520px] items-center justify-center rounded-lg border border-slate-200 bg-white">
+                    <div class="flex flex-col items-center gap-4 text-slate-600">
+                        <mat-spinner diameter="36"></mat-spinner>
+                        <p class="text-sm font-medium">Carregando folha de ponto</p>
+                    </div>
+                </section>
             }
             @case ("error") {
-                <div
-                    class="mt-5 flex flex-col items-center justify-center gap-1"
-                >
-                    @if (isConnectionError(snapshot.value)) {
-                        <p>A connection error occurred.</p>
-                    } @else {
-                        <p>An unexpected error occurred.</p>
-                    }
-                    <button mat-button (click)="retry()">Retry</button>
-                </div>
+                <section class="flex min-h-[520px] items-center justify-center rounded-lg border border-red-200 bg-red-50 px-6 text-center">
+                    <div class="max-w-md">
+                        <h2 class="text-lg font-semibold text-red-950">Nao foi possivel carregar os dados</h2>
+                        @if (isConnectionError(snapshot.value)) {
+                            <p class="mt-2 text-sm text-red-800">Confira se os servicos estao ativos e tente novamente.</p>
+                        } @else {
+                            <p class="mt-2 text-sm text-red-800">Ocorreu um erro inesperado ao consultar a folha.</p>
+                        }
+                        <button mat-button class="mt-4" (click)="retry()">Tentar novamente</button>
+                    </div>
+                </section>
             }
             @case ("done") {
                 @let attendances = snapshot.value;
-                <div class="flex flex-col">
-                    <app-employee-form (add)="addEmployee($event)" />
-                    @if (attendances.length === 0) {
-                        <div class="mt-5 flex items-center justify-center">
-                            <p>No employees added.</p>
+                @let dayAbsences = selectedAbsences();
+
+                <section class="grid gap-5 xl:grid-cols-[minmax(320px,420px)_1fr]">
+                    <aside class="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4">
+                        <div>
+                            <h2 class="text-base font-semibold text-slate-950">Colaboradores</h2>
+                            <p class="text-sm text-slate-500">{{ attendances.length }} cadastrados</p>
                         </div>
-                    } @else {
-                        <div class="mt-4 flex flex-col">
-                            @for (
-                                attendance of attendances;
-                                track attendance.employee.id
-                            ) {
-                                <app-employee-card
-                                    class="mb-1"
-                                    [employee]="attendance.employee"
-                                    (remove)="
-                                        removeEmployee(attendance.employee.id)
-                                    "
-                                />
+
+                        <app-employee-form (add)="addEmployee($event)" />
+
+                        <div class="flex max-h-[520px] flex-col gap-2 overflow-auto pr-1">
+                            @if (attendances.length === 0) {
+                                <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-600">
+                                    Nenhum colaborador cadastrado.
+                                </div>
+                            } @else {
+                                @for (attendance of attendances; track attendance.employee.id) {
+                                    <app-employee-card
+                                        [employee]="attendance.employee"
+                                        (remove)="removeEmployee(attendance.employee.id)"
+                                    />
+                                }
                             }
                         </div>
-                    }
-                </div>
+                    </aside>
+
+                    <section class="grid gap-5 lg:grid-cols-[minmax(360px,1fr)_minmax(300px,380px)]">
+                        <div class="rounded-lg border border-slate-200 bg-white p-4">
+                            <div class="mb-3 flex items-center justify-between gap-3">
+                                <div>
+                                    <h2 class="text-base font-semibold text-slate-950">Calendário</h2>
+                                    <p class="mt-1 text-sm text-slate-500">{{ monthLabel() }}</p>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-lg leading-none text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                                        aria-label="Mes anterior"
+                                        title="Mes anterior"
+                                        (click)="previousMonth()"
+                                    >
+                                        ‹
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-lg leading-none text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                                        aria-label="Proximo mes"
+                                        title="Proximo mes"
+                                        (click)="nextMonth()"
+                                    >
+                                        ›
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 flex flex-col gap-2 border-b border-slate-100 pb-3 sm:flex-row sm:items-center sm:justify-between">
+                                <h3 class="text-xs font-semibold text-slate-500">Legenda</h3>
+                                <div class="flex flex-wrap gap-3 text-xs text-slate-500">
+                                    <span class="inline-flex items-center gap-1">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                        Ausência
+                                    </span>
+                                    <span class="inline-flex items-center gap-1">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                        Feriado
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-7 gap-1 border-b border-slate-100 pb-2">
+                                @for (weekDay of weekDays; track weekDay) {
+                                    <div class="py-2 text-center text-xs font-semibold text-slate-500">
+                                        {{ weekDay }}
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="mt-2 grid grid-cols-7 gap-1">
+                                @for (day of calendarDays(); track day.date.toISOString()) {
+                                    <button
+                                        type="button"
+                                        class="flex aspect-square min-h-10 flex-col items-center justify-center gap-1 rounded-lg border text-sm font-medium transition"
+                                        [class.border-slate-200]="!day.isSelected"
+                                        [class.border-slate-950]="day.isSelected"
+                                        [class.bg-slate-950]="day.isSelected"
+                                        [class.text-white]="day.isSelected"
+                                        [class.bg-white]="!day.isSelected"
+                                        [class.text-slate-950]="day.isCurrentMonth && !day.isSelected"
+                                        [class.text-slate-300]="!day.isCurrentMonth && !day.isSelected"
+                                        [class.ring-2]="day.isToday && !day.isSelected"
+                                        [class.ring-slate-200]="day.isToday && !day.isSelected"
+                                        [class.hover:border-slate-300]="!day.isSelected"
+                                        [class.hover:bg-slate-50]="!day.isSelected"
+                                        [attr.aria-label]="'Selecionar dia ' + day.day"
+                                        [attr.aria-pressed]="day.isSelected"
+                                        (click)="selectDate(day.date)"
+                                    >
+                                        <span>{{ day.day }}</span>
+                                        <span class="flex h-1.5 items-center justify-center gap-0.5">
+                                            @if (day.hasAbsence) {
+                                                <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                            }
+                                            @if (day.hasHoliday) {
+                                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                            }
+                                        </span>
+                                    </button>
+                                }
+                            </div>
+
+                            <section class="mt-4 rounded-lg border border-slate-200 bg-white px-4 py-3">
+                                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <h2 class="text-sm font-semibold text-slate-950">Resumo do mês</h2>
+
+                                    <dl class="grid gap-2 sm:grid-cols-2">
+                                        <div class="min-w-24 rounded-lg bg-slate-50 px-3 py-2">
+                                            <dt class="text-xs text-slate-500">Ausências</dt>
+                                            <dd class="text-base font-semibold text-slate-950">{{ totals.absences }}</dd>
+                                        </div>
+                                        <div class="min-w-24 rounded-lg bg-slate-50 px-3 py-2">
+                                            <dt class="text-xs text-slate-500">Feriados</dt>
+                                            <dd class="text-base font-semibold text-slate-950">{{ totals.holidays }}</dd>
+                                        </div>
+                                    </dl>
+                                </div>
+                            </section>
+                        </div>
+
+                        <aside class="flex flex-col gap-4">
+                            <section class="rounded-lg border border-slate-200 bg-white p-4">
+                                <h2 class="text-base font-semibold text-slate-950">Dia selecionado</h2>
+
+                                @if (!selectedDateLabel()) {
+                                    <div class="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-600">
+                                        Selecione um dia no calendario ou informe um periodo para vincular ausencias.
+                                    </div>
+                                }
+
+                                    <div class="mt-4 grid gap-3">
+                                        <div class="grid gap-3 sm:grid-cols-2">
+                                            <label class="grid gap-1">
+                                                <span class="text-xs font-medium text-slate-600">Data inicial</span>
+                                                <input
+                                                    type="date"
+                                                    class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+                                                    [value]="absenceStartDate()"
+                                                    (change)="updateAbsenceStartDate($event)"
+                                                />
+                                            </label>
+
+                                            <label class="grid gap-1">
+                                                <span class="text-xs font-medium text-slate-600">Data final</span>
+                                                <input
+                                                    type="date"
+                                                    class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+                                                    [value]="absenceEndDate()"
+                                                    (change)="updateAbsenceEndDate($event)"
+                                                />
+                                            </label>
+                                        </div>
+
+                                        <label class="grid gap-1">
+                                            <span class="text-xs font-medium text-slate-600">Motivo</span>
+                                            <select
+                                                class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-200"
+                                                [value]="selectedAbsenceReason()"
+                                                (change)="selectAbsenceReason($event)"
+                                            >
+                                                <option value="annualLeave">Férias</option>
+                                                <option value="sickLeave">Atestado</option>
+                                                <option value="medicalLeave">Licença médica</option>
+                                                <option value="longServiceLeave">Licença prêmio</option>
+                                            </select>
+                                        </label>
+
+                                        <label class="grid gap-1">
+                                            <span class="text-xs font-medium text-slate-600">Colaborador ausente</span>
+                                            <select
+                                                class="h-10 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-slate-950 focus:ring-2 focus:ring-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
+                                                [disabled]="attendances.length === 0"
+                                                [value]="selectedEmployeeId() ?? ''"
+                                                (change)="selectEmployeeForAbsence($event)"
+                                            >
+                                                <option value="">Selecionar colaborador</option>
+                                                @for (attendance of attendances; track attendance.employee.id) {
+                                                    <option [value]="attendance.employee.id">
+                                                        {{ attendance.employee.name }}
+                                                    </option>
+                                                }
+                                            </select>
+                                        </label>
+
+                                        <button
+                                            type="button"
+                                            (click)="addAbsence()"
+                                            [disabled]="!selectedEmployeeId() || !hasValidAbsenceRange()"
+                                            class="h-10 rounded-lg bg-slate-950 px-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                                        >
+                                            Cadastrar ausência
+                                        </button>
+                                    </div>
+
+                                    <div class="mt-4 flex flex-col gap-2">
+                                        @if (dayAbsences.length === 0) {
+                                            <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-600">
+                                                Sem ausências registradas nesta data.
+                                            </div>
+                                        } @else {
+                                            @for (absence of dayAbsences; track absence.id) {
+                                                <article class="rounded-lg border border-slate-200 px-3 py-3">
+                                                    <div class="flex items-start justify-between gap-3">
+                                                        <div>
+                                                            <h3 class="text-sm font-semibold text-slate-950">{{ absence.employee.name }}</h3>
+                                                            <p class="text-xs text-slate-500">{{ absence.range }}</p>
+                                                        </div>
+                                                        <div class="flex shrink-0 items-center gap-2">
+                                                            <span class="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-900">
+                                                                {{ absence.reason }}
+                                                            </span>
+                                                            <button
+                                                                type="button"
+                                                                class="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
+                                                                (click)="removeAbsence(absence.id)"
+                                                            >
+                                                                Remover
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </article>
+                                            }
+                                        }
+                                    </div>
+                            </section>
+
+                        </aside>
+                    </section>
+                </section>
             }
         }
-    </section>
-
-    <!-- Calendar -->
-    <section class="rounded-xl border bg-white p-6 shadow-sm">
-        <h2 class="text-xl font-semibold">Calendar</h2>
-        <div class="flex flex-row gap-10">
-            <mat-calendar #calendar class="flex-1" />
-            <!-- Holidays -->
-            <section class="w-full md:flex-1 min-w-0">
-                <h2 class="mb-4 text-lg font-semibold">Holidays</h2>
-                <div
-                    class="mb-6 flex h-48 items-center justify-center rounded-lg border-2 border-dashed"
-                >
-                    Holiday List Placeholder
-                </div>
-                <div
-                    class="flex h-32 items-center justify-center rounded-lg border-2 border-dashed"
-                >
-                    Add Custom Holiday Placeholder
-                </div>
-            </section>
-            <!-- Absences -->
-            <section class="w-full md:flex-1 min-w-0">
-                <h2 class="mb-4 text-lg font-semibold">Absences</h2>
-                <div
-                    class="mb-6 flex h-48 items-center justify-center rounded-lg border-2 border-dashed"
-                >
-                    Holiday List Placeholder
-                </div>
-                <div
-                    class="flex h-32 items-center justify-center rounded-lg border-2 border-dashed"
-                >
-                    Add Custom Holiday Placeholder
-                </div>
-            </section>
-        </div>
-    </section>
-
-    <!-- PDF -->
-    <section class="flex justify-end">
-        <button
-            class="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700"
-        >
-            Generate PDF
-        </button>
-    </section>
-</div>
+    </div>
+</main>
