@@ -1,4 +1,21 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./assets/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   pdf-service:
     build:
       context: ./pdf-service
@@ -14,6 +31,9 @@ services:
       dockerfile: Dockerfile
     env_file:
       - ./env/holidays.env
+    depends_on:
+      postgres:
+        condition: service_healthy
     container_name: holidays-service
     restart: unless-stopped
     ports:
@@ -25,10 +45,16 @@ services:
       dockerfile: Dockerfile
     env_file:
       - ./env/users.env
+    depends_on:
+      postgres:
+        condition: service_healthy
     container_name: users-service
     restart: unless-stopped
     ports:
       - "8083:3000"
+
+volumes:
+  postgres-data:
 
 networks:
   default:
